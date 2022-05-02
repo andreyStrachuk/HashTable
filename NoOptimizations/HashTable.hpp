@@ -5,8 +5,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#define HASHTABLESIZE 9973
-
 struct HashTable {
 
     List *listArr;

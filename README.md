@@ -1,6 +1,6 @@
 # HashTable with chaining
 
-This is implementation of hash table (also known as hash map). The aim is to optimize hash table as much as possible. To achieve this I use functions written on Assembly language as well as Intel intrinsics. As a text base I use 8.5MB txt file with the most commonly used WI-FI passwords. The size of hash table is 9973. All test done on AMD Ryzen 7 4800H with -O2 -mavx2 gcc flags.
+This is implementation of hash table (also known as hash map). The aim is to optimize hash table as much as possible. To achieve this I use functions coded on Assembly language as well as Intel intrinsics. As a text base I use 8.5MB txt file with the most commonly used WI-FI passwords. The size of hash table is 9973. All test done on AMD Ryzen 7 4800H with -O2 -mavx2 gcc flags.
 
 ## Testing hash functions
 
@@ -57,7 +57,7 @@ As wee can see from the data, the slowest functions are FillHashTable and FillBu
 ![](images/optmization_results/no_optimizations_crc32.png "").
 
 This is ListSearch before optimizations.
-```
+```cpp
 int ListSearch (List *lst, const DATA str, const int length) {
     assert (lst);
     assert (str);
@@ -72,7 +72,7 @@ int ListSearch (List *lst, const DATA str, const int length) {
 }
 ```
 After modifying:
-```
+```cpp
 int ListSearch (List *lst, const DATA str, const int length) {
     assert (lst);
     assert (str);
@@ -105,9 +105,10 @@ Hmm, it's time to look at callgrind again:
 
 ![](images/optmization_results/avx_cmp.png "").
 
-Function FindLastLetter calls isalpha, so I decided to optimize it. I'll write this function on Assembly.
+
+Function FindLastLetter calls isalpha, so I decided to optimize it. I'll code this function on Assembly.
 Here it is:
-```
+```x86asm
 isalphA:
 
         saveregs
@@ -137,8 +138,8 @@ end:    restoreregs
 ![](images/optmization_results/isalphA.png "").
 
 We got 4% boost. Well, it is an optimization. 4% is better that 0.
-Next function is HashCRC32. Obviously, it counts hash. First of all, I'll write it in Assmebly. It is C version:
-```
+Next function is HashCRC32. Obviously, it counts hash. First of all, I'll code it in Assembly. It is C version:
+```cpp
 int HashCRC32 (void *str, const int length) {
     assert (str);
 
@@ -154,7 +155,7 @@ int HashCRC32 (void *str, const int length) {
 ```
 
 ASM:
-```
+```x86asm
 CRC32Computing:     
 
                 ; pushparams      ; rdi - buffer
@@ -212,10 +213,10 @@ endOfProc:
 
 ![](images/optmization_results/assembly_crc32_isalphA.png "").
 
-Unfortunately, this function slows down my program. Maybe, I'm not good at writnig asm code. Definetely, compiler writes on asm better than me)
+Unfortunately, this function slows down my program. Maybe, I'm not good at writing asm code. Definetely, compiler generate asm code better than me)
 
 Besides that, I want to try crc32 on intrinsics. That's how it looks:
-```
+```cpp
 int HashTableInsert (HashTable *table, char *str, int length, int (* HashFunction)(void *, int)) {
     assert (table);
     assert (str);
@@ -243,4 +244,4 @@ As we can see from callgrind, there is function called ResizeListUp. It calls wh
 
 ## Results discussion
 
-    To sum up, we optimize our hash table by 70.5%. The main boost is given by using intrinsics. Unfortunately, I cannot compete with compiler in writing good asm code. It doesn't benefit at all. Maybe, if I used -O0 flag, we were able to notice boost, but I used -O2.
+To sum up, we optimize our hash table by 70.5%. The main boost is given by using intrinsics. Unfortunately, I cannot compete with compiler in coding on asm code. It doesn't benefit at all. Maybe, if I used -O0 flag, we were able to notice boost, but I used -O2.
