@@ -1,0 +1,39 @@
+digraph G {
+   concentrate=True;
+   rankdir=LR;
+   node [shape=record,color=blue];
+   0 [fillcolor=red, style=rounded,filled label=data: 56|{next: 2|prev: 0}];
+
+   1 [fillcolor=red, style=rounded,filled label=data: 6|{next: 3|prev: 1}];
+
+   2 [fillcolor=red, style=rounded,filled label=data: 456|{next: 4|prev: 2}];
+
+   3 [fillcolor=red, style=rounded,filled label=data: 5|{next: 5|prev: 3}];
+
+   4 [fillcolor=red, style=rounded,filled label=data: 7|{next: 6|prev: 4}];
+
+   5 [fillcolor=red, style=rounded,filled label=data: 8|{next: 7|prev: 5}];
+
+   6 [fillcolor=red, style=rounded,filled label=data: 234|{next: 0|prev: 6}];
+
+   7 [fillcolor=green, style=rounded,filled label=data: 0|{next: 9|prev: -1}];
+
+   8 [fillcolor=green, style=rounded,filled label=data: 0|{next: 10|prev: -1}];
+
+   9 [fillcolor=green, style=rounded,filled label=data: 0|{next: 0|prev: -1}];
+
+1 -> 2
+2 -> 3
+3 -> 4
+4 -> 5
+5 -> 6
+2 -> 1
+3 -> 2
+4 -> 3
+5 -> 4
+6 -> 5
+7 -> 8
+8 -> 9
+8 -> 7
+9 -> 8
+}
