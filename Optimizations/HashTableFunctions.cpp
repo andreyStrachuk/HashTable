@@ -86,6 +86,8 @@ unsigned long CRCTable [] = {
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
+const int HASHTABLESIZE = 9973;
+
 int HashTableInit (HashTable *table, const int size) {
     assert (table);
 
