@@ -26,7 +26,7 @@ $(hashtable_o): $(SRC_O) $(SRC_ASM_1) $(SRC_ASM_2)
 	
 	$(NC) $(NASMFLAGS) $(SRC_ASM_2)
 
-	$(CC) $(LFLAGS) *.o -o $(hashtable_o)
+	$(CC) $(LFLAGS) Optimizations/*.o *.o -o $(hashtable_o)
 
 	rm Optimizations/*.o *.o
 

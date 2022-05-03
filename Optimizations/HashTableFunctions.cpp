@@ -192,7 +192,7 @@ int ModifyBuffer (char *str) {
 char *FindFirstLetter (char *str) {
     assert (str);
 
-    while (!isalpha (*str) && *str != '\0') { 
+    while (!isalphA (*str) && *str != '\0') { 
         str++;
     }
 
@@ -202,7 +202,7 @@ char *FindFirstLetter (char *str) {
 char *FindLastLetter (char *str) {
     assert (str);
 
-    while (isalpha (*str) && *str != '\0') {
+    while (isalphA (*str) && *str != '\0') {
         str++;
     }
 
