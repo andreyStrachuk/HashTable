@@ -157,7 +157,7 @@ int HashTableInsert (HashTable *table, char *str, int length, int (* HashFunctio
     int res = ListSearch (&(table->listArr[hash % table->size]), str, length);
 
     if (res == -1)
-        PushBack (&(table->listArr[hash % table->size]), str);
+        PushBack (&(table->listArr[hash % table->size]), str, length);
 
     return OK;
 }

@@ -38,6 +38,7 @@ typedef char* DATA;
 
 struct ListElement {
     DATA value;
+    int length;
 
     int next;
     int prev;
@@ -57,7 +58,7 @@ struct List {
 
 int InitList (List *lst);
 
-int PushBack (List *lst, const DATA value);
+int PushBack (List *lst, const DATA value, const int length);
 
 int Insert (List *lst, const int index, const DATA value);
 

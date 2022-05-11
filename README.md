@@ -73,7 +73,7 @@ int ListSearch (List *lst, const DATA str, const int length) {
 ```
 After modifying:
 ```cpp
-int ListSearch (List *lst, const DATA str, const int length) {
+int ListSearchOpt (List *lst, const DATA str, const int length) {
     assert (lst);
     assert (str);
 
@@ -86,10 +86,11 @@ int ListSearch (List *lst, const DATA str, const int length) {
 
         listStr = _mm_lddqu_si128 ((__m128i *)lst->list[i].value);
 
-        cmp = _mm_cmpestrc (listStr, 16, string, length, _SIDD_CMP_EQUAL_EACH);
+        cmp = _mm_cmpestri (string, length + 1, listStr, lst->list[i].length + 1, _SIDD_CMP_EQUAL_ORDERED | _SIDD_CMP_EQUAL_EACH | _SIDD_UBYTE_OPS);
 
-        if (cmp != 0)
+        if (cmp == 0) {
             return i;
+        }
     }
 
     return -1;
@@ -99,7 +100,7 @@ Let's now see the results:
 
 ![](images/optmization_results/avx_strncmp_2.png "").
 
-Fine...we got 67% boost.
+Fine...we got 34% boost.
 
 Hmm, it's time to look at callgrind again:
 
@@ -117,18 +118,18 @@ isalphA:
         jb not
 
         cmp rdi, 'Z'
-        jb alpha
+        jbe alpha
 
         cmp rdi, 'a'
         jb not
 
         cmp rdi, 'z'
-        jb alpha
+        jbe alpha
 
 not:    mov rax, 0
         jmp end
 
-alpha:  mov rax, 1
+alpha:  mov rax, 1024
 
 end:    restoreregs
 
@@ -137,7 +138,7 @@ end:    restoreregs
 
 ![](images/optmization_results/isalphA.png "").
 
-We got 4% boost. Well, it is an optimization. 4% is better that 0.
+We got almost nothing. It seems like I cannot overtake compiler.
 Next function is HashCRC32. Obviously, it counts hash. First of all, I'll code it in Assembly. It is C version:
 ```cpp
 int HashCRC32 (void *str, const int length) {
@@ -213,7 +214,7 @@ endOfProc:
 
 ![](images/optmization_results/assembly_crc32_isalphA.png "").
 
-Unfortunately, this function slows down my program. Maybe, I'm not good at writing asm code. Definetely, compiler generate asm code better than me)
+Unfortunately, this function slows down my program. Maybe, I'm not good at writing asm code. Definetely, compiler generates asm code better than me)
 
 Besides that, I want to try crc32 on intrinsics. That's how it looks:
 ```cpp
@@ -238,7 +239,7 @@ int HashTableInsert (HashTable *table, char *str, int length, int (* HashFunctio
 
 ![](images/optmization_results/crc32_intrinsics.png "").
 
-6% percent boost. That's OK.
+4% percent boost. That's OK.
 
 As we can see from callgrind, there is function called ResizeListUp. It calls when list size equals list capacity. To avoid calling it, I'll set initial capacity of list 100. Unfortunately, it doesn't give any boost.
 

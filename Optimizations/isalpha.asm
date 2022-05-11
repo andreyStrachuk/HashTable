@@ -26,18 +26,18 @@ isalphA:
         jb not
 
         cmp rdi, 'Z'
-        jb alpha
+        jbe alpha
 
         cmp rdi, 'a'
         jb not
 
         cmp rdi, 'z'
-        jb alpha
+        jbe alpha
 
 not:    mov rax, 0
         jmp end
 
-alpha:  mov rax, 1
+alpha:  mov rax, 1024
 
 end:    restoreregs
 

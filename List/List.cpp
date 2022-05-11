@@ -72,7 +72,7 @@ static int ResizeListUp (List *lst) {
     return OK;
 }
 
-int PushBack (List *lst, const DATA value) {
+int PushBack (List *lst, const DATA value, const int length) {
     assert (lst);
 
     if ((lst->list + lst->freeHead)->next == 0 && (lst->list + lst->freeHead)->prev == -1) {
@@ -81,6 +81,8 @@ int PushBack (List *lst, const DATA value) {
     }
 
     int insIndex = lst->freeHead;
+
+    (lst->list + insIndex)->length = length;
 
     if (lst->head == 0) {
         lst->head++;
@@ -238,10 +240,12 @@ int ListSearchOpt (List *lst, const DATA str, const int length) {
 
         listStr = _mm_lddqu_si128 ((__m128i *)lst->list[i].value);
 
-        cmp = _mm_cmpestrc (listStr, 16, string, length, _SIDD_CMP_EQUAL_EACH);
+        cmp = _mm_cmpestri (string, length + 1, listStr, lst->list[i].length + 1, _SIDD_CMP_EQUAL_ORDERED | _SIDD_CMP_EQUAL_EACH | _SIDD_UBYTE_OPS);
 
-        if (cmp != 0)
+        if (cmp == 0) {
+
             return i;
+        }
     }
 
     return -1;
@@ -267,7 +271,7 @@ List *LinearList (List *lst) {
         value = (lst->list + tmpHead)->value;
         tmpHead = (lst->list + tmpHead)->next;
 
-        resOfAct = PushBack (newList, value);
+        resOfAct = PushBack (newList, value, 0);
 
         if (resOfAct != OK) {
             printf ("Error!\n");
