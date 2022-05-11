@@ -245,4 +245,4 @@ As we can see from callgrind, there is function called ResizeListUp. It calls wh
 
 ## Results discussion
 
-To sum up, we optimize our hash table by 70.5%. The main boost is given by using intrinsics. Unfortunately, I cannot compete with compiler in coding on asm code. It doesn't benefit at all. Maybe, if I used -O0 flag, we were able to notice boost, but I used -O2.
+To sum up, we optimize our hash table by 37%. The main boost is given by using intrinsics. Unfortunately, I cannot compete with compiler in coding on asm code. It doesn't benefit at all. Maybe, if I used -O0 flag, we were able to notice boost, but I used -O2.
