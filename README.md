@@ -1,14 +1,14 @@
-# HashTable with chaining
+# HashTable using chaining method
 
-This is implementation of hash table (also known as hash map). The aim is to optimize hash table as much as possible. To achieve this I use functions coded on Assembly language as well as Intel intrinsics. As a text base I use 8.5MB txt file with the most commonly used WI-FI passwords. The size of hash table is 9973. All test done on AMD Ryzen 7 4800H with -O2 -mavx2 gcc flags.
+This is implementation of hash table (also known as hash map). The aim is to optimize hash table as much as possible in terms of execution time. To achieve this I use functions coded on Assembly language as well as Intel intrinsics. As a text base I use 8.5MB txt file with the most commonly used WI-FI passwords. The size of hash table is 9973. All tests done on AMD Ryzen 7 4800H with -O2 -mavx2 gcc flags.
 
 ## Testing hash functions
 
-First and foremost, I want to compare following hash functions:
-1) Returns 1 on every set of bytes
-2) Returns word length
-3) Return ASCII code of first word letter
-4) Return sum of ASCII codes that word is consisted of
+First, I want to compare following hash functions:
+1) Returns 1 on input data
+2) Returns string length
+3) Returns ASCII code of first string symbol
+4) Returns sum of ASCII codes that word consists of
 5) ROL hash
 6) [CRC32 hash](https://en.wikipedia.org/wiki/Cyclic_redundancy_check#CRC-32_algorithm)
 
@@ -16,45 +16,51 @@ First and foremost, I want to compare following hash functions:
 ![](images/1.png "Returns 1").
 
 
-As we can see form the graph, the effectiveness of this hash function is slightly approaching zero. So I would not use it in optimization.
+As we can see from the graph, the impact of this hash function is slightly approaching zero. Colissions happen at 100% cases.
 
 ### 2. Returns word length
 ![](images/length.png "Returns length").
 
 
-Due to the fact that word length is not longer than 16, the question of usage this hash is out of discussion...
+This graph shows that the longest list has size of 120000. This make this hash function out-of-use.
 
-### 3. Returns ASCII symbol of first letter
+### 3. Returns ASCII code of first letter
 ![](images/firstletter.png "Returns ASCII code").
 
-What a pitty. This function isn't able to occupy all hash table. I won't use it.
+This hash function shows a little bit better results. List size decreased by 6 times. But, it is still too large to be used in hash table.
 
 ### 4. Returns sum of ASCII symbols
 ![](images/ascii.png "Returns ASCII sum").
 
 
-While this hash function is much better than previous, I still cannot use it as a primary one. Hash value ranges from 0 to 2000 but size of table is almost 10000.
+While this hash function is much better than previous, I still cannot use it as a primary one. Average list size is 1000.
 
 ### 5. ROL hash
 ![](images/ROL.png "ROL").
 
 
-This hash function is able to fill(finally) all hash table. Nevertheless, elements aren't divided evenly.
+ROL hash function shows good results yet it is sill cannot be used at hash table due to the list size. Moreover, we can observe nodes that are happen periodically which additionally doubts the usage of this function.
 
 ### 6. CRC32
 ![](images/crc32.png "CRC32").
 
 
-CRC32 seems to be the most balanced function. I'll keep it to do optimizations.
+CRC32 hash has the least list size. Therefore, I will keep it for further optimizations.
 
 ## Optimizing hash table
-I use callgrind to understand what to optimize. Let's run it:
+My goal is to optimize execution time. To get better performance I will use KCacheGrind as well as callgrind to profile my hash table. To notice any changes I will run linux time.
 
-![](images/optmization_results/no_optmization_ccallgrind.png "No opt").
+Compilation flags
+### -Wpedantic -Wextra -Wall -g -c -O2 -mavx2 -DNDEBUG
+Execution time before optimizing:
 
-As wee can see from the data, the slowest functions are FillHashTable and FillBuffer. However, they are called only once. Taking this into consideration, I will optimize ListSearch function. I will use Intel intrinsics to compare strings. This is the execution time before optimizing:
+![](images/optmization_results/no_optimizations_crc32.png "No opt")
 
-![](images/optmization_results/no_optimizations_crc32.png "").
+Let's run callgrind to understand what to optimize it:
+
+![](images/optmization_results/no_optmization_ccallgrind.png "No opt")
+
+As wee can see from the data, the slowest functions are ListSearch and isalpha. I will optimize ListSearch function. I will use Intel intrinsics to compare strings.
 
 This is ListSearch before optimizations.
 ```cpp
@@ -100,14 +106,14 @@ Let's now see the results:
 
 ![](images/optmization_results/avx_strncmp_2.png "").
 
-Fine...we got 34% boost.
+Fine...we got 34% boost at time.
 
 Hmm, it's time to look at callgrind again:
 
 ![](images/optmization_results/avx_cmp.png "").
 
 
-Function FindLastLetter calls isalpha, so I decided to optimize it. I'll code this function on Assembly.
+Next function to be optimized is isalpha. I'll code this function on Assembly.
 Here it is:
 ```x86asm
 isalphA:
@@ -136,9 +142,18 @@ end:    restoreregs
         ret
 ```
 
-![](images/optmization_results/isalphA.png "").
+Time after using assembly coded isalphA:
 
-We got almost nothing. It seems like I cannot overtake compiler.
+![](images/optmization_results/isalphA.png "")
+
+Let's rerun kcachegrind after optimization.
+
+![](images/optmization_results/isalphA_kcachegrind.png "")
+
+As wee can see from the image, my isalphA function is on top of the list. I got almost nothing boost in time. Therefore, I will not used keep it for further optimization.
+
+
+
 Next function is HashCRC32. Obviously, it counts hash. First of all, I'll code it in Assembly. It is C version:
 ```cpp
 int HashCRC32 (void *str, const int length) {
@@ -241,8 +256,6 @@ int HashTableInsert (HashTable *table, char *str, int length, int (* HashFunctio
 
 4% percent boost. That's OK.
 
-As we can see from callgrind, there is function called ResizeListUp. It calls when list size equals list capacity. To avoid calling it, I'll set initial capacity of list 100. Unfortunately, it doesn't give any boost.
+## Conclusion
 
-## Results discussion
-
-To sum up, we optimize our hash table by 37%. The main boost is given by using intrinsics. Unfortunately, I cannot compete with compiler in coding on asm code. It doesn't benefit at all. Maybe, if I used -O0 flag, we were able to notice boost, but I used -O2.
+To sum up, I optimized my hash table by 37%. The main boost is given by using intrinsics. Unfortunately, I cannot compete with compiler in coding on asm code. It doesn't benefit at all. Maybe, if I used -O0 flag, we were able to notice boost, but I used -O2.
